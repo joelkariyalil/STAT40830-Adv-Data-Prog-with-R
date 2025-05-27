@@ -1,0 +1,54 @@
+---
+title: "STAT40830 - Homework 1"
+author: "Joel Thomas Chacko"
+format: 
+  pdf:
+    geometry: "top=1.5cm, bottom=1.2cm, left=1cm, right=1cm"
+    fontsize: 11pt
+editor: visual
+execute:
+    echo: false
+    warning: false
+    message: false
+    fig-width: 7
+    fig-height: 5
+    fig-align: center
+---
+
+```{r}
+
+library(dplyr)
+library(knitr)
+library(ggplot2)
+data(CO2)
+
+```
+
+# Introduction
+
+The dataset that's used is the $CO_2$ dataset present in the `datasets`. The $CO_2$ data set basically contains data from a study from an experiment on the cold tolerance of grass plants. It records the rate of CO₂ uptake (photosynthesis) by different plants by exposing varying concentrations of ambient $CO_2$, under different treatment conditions.
+
+# Descriptive Statistics
+
+```{r}
+
+summaryTable <- CO2 |>
+  group_by(Type, Treatment) |>
+  summarise(
+    Mean_Uptake = round(mean(uptake), 2),
+    SD_Uptake = round(sd(uptake), 2),
+    Count = n()
+  )
+
+kable(summaryTable, caption = "Mean Carbon Dioxide Uptake by Type and Treatment")
+```
+
+**Interpretation**
+
+From the above table, we can see that there 21 plants in each group, and we observe the following
+
+-    \textcolor{red}{Highest} $CO_2$ Absorption: **Quebec - Nonchilled plants**
+
+-   \textcolor{blue}{Lowest} $CO_2$ Absorption: **Mississippi - Chilled plants**
+
+
