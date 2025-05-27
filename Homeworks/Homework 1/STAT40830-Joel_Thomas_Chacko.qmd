@@ -51,4 +51,23 @@ From the above table, we can see that there 21 plants in each group, and we obse
 
 -   \textcolor{blue}{Lowest} $CO_2$ Absorption: **Mississippi - Chilled plants**
 
+# Plot
 
+```{r}
+
+
+ggplot(CO2, aes(x = Treatment, y = uptake, fill = Type)) +
+  geom_boxplot() +
+  labs(
+    title = "Effect of Chilling on CO2 Uptake by Plant Type",
+    x = "Treatment Condition",
+    y = "CO2 Uptake (μmol/m²/sec)",
+    fill = "Plant Type"
+  ) +
+  theme_minimal()
+
+```
+
+**Interpretation**
+
+From the above plot we can clearly see that Quebec plants has a higher $CO_2$ update than the Missisippi plants, and we also see that that nonchilled plants (in comparatively less cold) environments have more absorption than plants in chilled environments.
