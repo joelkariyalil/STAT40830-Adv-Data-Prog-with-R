@@ -1,18 +1,23 @@
 ---
-title: "STAT40830 - Homework 1"
-author: "Joel Thomas Chacko"
-format: 
-  pdf:
-    geometry: "top=1.5cm, bottom=1.2cm, left=1cm, right=1cm"
-    fontsize: 11pt
-editor: visual
-execute:
-    echo: false
-    warning: false
-    message: false
-    fig-width: 7
-    fig-height: 5
-    fig-align: center
+title: "Homework 1 - Adv Data Prog with R"
+author: "Joel Thomas Chacko - 24220504"
+format:
+  html:
+    fontsize: 1.2em
+    toc: true
+    toc-title: '**Contents**'
+    embed-resources: true
+    grid:
+      body-width: 800px
+  revealjs: 
+    slide-number: true
+    html-math-method: mathjax
+    theme: serif
+execute: 
+  eval: true
+  echo: false
+  warning: false
+  message: false
 ---
 
 ```{r}
@@ -24,11 +29,11 @@ data(CO2)
 
 ```
 
-# Introduction
+## Introduction
 
 The dataset that's used is the $CO_2$ dataset present in the `datasets`. The $CO_2$ data set basically contains data from a study from an experiment on the cold tolerance of grass plants. It records the rate of CO₂ uptake (photosynthesis) by different plants by exposing varying concentrations of ambient $CO_2$, under different treatment conditions.
 
-# Descriptive Statistics
+## Descriptive Statistics
 
 ```{r}
 
@@ -43,7 +48,7 @@ summaryTable <- CO2 |>
 kable(summaryTable, caption = "Mean Carbon Dioxide Uptake by Type and Treatment")
 ```
 
-**Interpretation**
+### Interpretation
 
 From the above table, we can see that there 21 plants in each group, and we observe the following
 
@@ -51,7 +56,7 @@ From the above table, we can see that there 21 plants in each group, and we obse
 
 -   \textcolor{blue}{Lowest} $CO_2$ Absorption: **Mississippi - Chilled plants**
 
-# Plot
+## Plot - Effect of Chilling on CO2 Uptake by Plant Type
 
 ```{r}
 
@@ -68,6 +73,6 @@ ggplot(CO2, aes(x = Treatment, y = uptake, fill = Type)) +
 
 ```
 
-**Interpretation**
+### Interpretation
 
 From the above plot we can clearly see that Quebec plants has a higher $CO_2$ update than the Missisippi plants, and we also see that that nonchilled plants (in comparatively less cold) environments have more absorption than plants in chilled environments.
