@@ -1,0 +1,142 @@
+---
+title: "Economic, Social, Environmental, Health, Education, Development and Energy of Albania, Croatia and Malta"
+author: "Joel Thomas Chacko"
+institute: "University College Dublin"
+format:
+  beamer:
+    theme: Madrid
+    colortheme: seahorse
+    fonttheme: professionalfonts
+    include-in-header: custom-meta-data/custom-tex.tex
+editor: visual
+---
+
+## Introduction
+
+This presentation analyzes **Economic**, **Social**, **Environmental**, **Health**, **Education**, **Development**, and **Energy** indicators for **Albania**, **Croatia**, and **Malta**, using World Bank data via the Humanitarian Data Exchange.
+
+All data wrangling is performed with the `data.table` package in R. Visualizations use `ggplot2`.
+
+------------------------------------------------------------------------
+
+## Data Preparation
+
+```{r setup, include=FALSE}
+library(data.table)
+library(ggplot2)
+options(datatable.print.topn = 100)
+```
+
+------------------------------------------------------------------------
+
+## Load and Combine Datasets
+
+```{r load-data}
+albania <- fread("datasets/indicators_alb_albania.csv")
+croatia <- fread("datasets/indicators_hrv_croatia.csv")
+malta <- fread("datasets/indicators_mlt_malta.csv")
+
+# Drop headers
+albania <- albania[-1]
+croatia <- croatia[-1]
+malta <- malta[-1]
+
+# Merge using functionality provided by data.table
+allData <- rbindlist(list(albania, croatia, malta))
+```
+
+------------------------------------------------------------------------
+
+## Clean Column Names and Types
+
+```{r clean}
+#| echo: true
+setnames(allData, old = c("Country Name", "Country ISO3", "Year", "Indicator Name", "Indicator Code", "Value"),
+                 new = c("countryName", "countryCode", "year", "indicatorName", "indicatorCode", "value"))
+
+allData[, year := as.integer(year)]
+allData[, value := as.numeric(value)]
+```
+
+------------------------------------------------------------------------
+
+## Quick Exploration
+
+```{r explore}
+allData[, .N, by = .(countryName)]
+allData[, .N, by = .(indicatorName)][1:10]
+```
+
+------------------------------------------------------------------------
+
+## Sample Plot: Population Trend
+
+```{r pop-plot}
+popData <- allData[indicatorName == "Population, total"]
+ggplot(popData, aes(x = year, y = value, color = countryName)) +
+  geom_line(size = 1.2) +
+  labs(title = "Population Growth", y = "Population", x = "Year") +
+  theme_minimal()
+```
+
+------------------------------------------------------------------------
+
+## GDP Per Capita
+
+```{r}
+
+gdpData <- allData[indicatorName == "GDP per capita (current US$)"]
+ggplot(gdpData, aes(x = year, y = value, color = countryName)) +
+  geom_line() +
+  labs(title = "GD##P per Capita Over Time", y = "USD", x = "Year") +
+  theme_minimal()
+
+```
+
+## Top 10 Countries by Average GDP Per Capita
+
+```{r}
+
+library(knitr)
+
+gdpSubset <- allData[indicatorName == "GDP per capita (current US$)"]
+
+topGDP <- gdpSubset[, .(avgGDP = mean(value, na.rm = TRUE)), keyby = countryName][
+  order(-avgGDP)][1:10]
+
+kable(topGDP, caption = "Top 10 Countries by Average GDP per Capita")
+
+
+```
+
+## Literacy Emissions
+
+```{r}
+
+literacyData <- allData[grepl("literacy rate", tolower(indicatorName))]
+ggplot(literacyData, aes(x = year, y = value, color = countryName)) +
+  geom_line() +
+  labs(title = "Literacy Rate Trend", y = "%", x = "Year") +
+  theme_minimal()
+
+```
+
+## Renewable Energy Share
+
+```{r}
+
+renewData <- allData[indicatorName == "Renewable energy consumption (% of total final energy consumption)"]
+ggplot(renewData, aes(x = year, y = value, color = countryName)) +
+  geom_line() +
+  labs(title = "Renewable Energy Share", y = "%", x = "Year") +
+  theme_minimal()
+
+```
+
+## Summary
+
+-   Cleaned and merged data from 3 countries
+-   Filtered, renamed, and explored indicators
+-   Built reproducible plots and computations using R
+
+Future work could include: - Modeling relationships between indicators - Forecasting trends using time-series models

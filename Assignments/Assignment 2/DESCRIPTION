@@ -1,0 +1,18 @@
+Package: CountryHealthAnalysis
+Title: Country Indicator Summary Tools
+Version: 1.0.0
+Authors@R: person("Joel Thomas", "Chacko", email = "joel.chacko@ucdconnect.ie", role = c("aut", "cre"))
+Description: Read and analyze World Bank indicator data for countries. Provides print, summary, and plot methods for a new indicatorData class.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports:
+    data.table,
+    ggplot2,
+    dplyr,
+    knitr
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

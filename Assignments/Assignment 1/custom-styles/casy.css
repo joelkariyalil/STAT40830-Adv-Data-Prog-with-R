@@ -1,3 +1,4 @@
+
 .reveal {
   font-family: 'Lato', sans-serif;
   font-size: 22px;
@@ -21,24 +22,59 @@
   font-size: 10px;
 }
 .reveal table {
-  font-size: 18px;
+  font-size: 20px;
   border-collapse: collapse;
   border: 1px solid #cccccc;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
 }
-.reveal table th, .reveal table td {
+
+.reveal table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  padding: 12px 16px;            
   border: 1px solid #cccccc;
-  padding: 8px;
+  text-align: center;
 }
+
+.reveal table caption {
+  font-weight: 700;
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #222222;
+  text-align: center;
+}
+
+.reveal table td {
+  padding: 10px 16px;
+  border: 1px solid #cccccc;
+  text-align: center;
+}
+ 
 pre.sourceCode {
-  background: #fafafa;
-  border: 1px solid #cccccc;
-  padding: 5px;
-  border-radius: 6px;
+  background: #f5f5f5;
   font-family: 'Courier New', monospace;
-  font-size: 6px;
+  font-size: 15px;
   max-height: 170px;
   overflow-y: auto;
+  overflow-x: auto;
   word-break: break-word;
   white-space: pre-wrap;
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+
+}
+.reveal pre {
+  overflow-x: hidden !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  max-height: none !important;
+}
+.reveal p, .reveal ul, .reveal ol {
+  margin-bottom: 20px;
+}
+.reveal h1, .reveal h2, .reveal h3 {
+  margin-bottom: 25px;
 }

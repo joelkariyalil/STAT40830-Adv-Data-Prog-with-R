@@ -1,0 +1,72 @@
+---
+title: "Economic, Social, Environmental, Health, Education, Development and Energy of Albania, Croatia and Malta"
+author: "Joel Thomas Chacko"
+institute: "University College Dublin"
+format:
+  revealjs:
+    theme: solarized
+    slide-number: true
+    incremental: true
+    toc: true
+    code-fold: true
+    highlight-style: github
+    center-title-slide: true
+    transition: slide
+editor: visual
+---
+
+## Introduction
+
+This presentation analyzes Economic, Social, Environmental, Health, Education, Development, and Energy indicators for Albania, Croatia, and Malta using data from the World Bank via Humanitarian Data Exchange.
+
+We use the `data.table` package in R for all required data manipulation tasks. Only where explicitly allowed, other packages are used (e.g., for visualization).
+
+## Data Preparation
+
+```{r setup, include=FALSE}
+library(data.table)
+library(ggplot2)
+options(datatable.print.topn = 100)
+```
+
+## Load and Clean Data
+
+```{r load-data}
+# Load three country files
+albania <- fread("datasets/indicators_alb_albania.csv")
+croatia <- fread("datasets/indicators_hrv_croatia.csv")
+malta <- fread("datasets/indicators_mlt_malta.csv")
+
+# Drop first row from each dataset
+albania = albania[-1]
+croatia = croatia[-1]
+malta = malta[-1]
+
+# Combine and ensure correct types
+allData <- rbindlist(list(albania, croatia, malta))
+str(allData)
+```
+
+## Clean & Filter
+
+```{r clean}
+# Standardize column names (for compatibility)
+setnames(allData, old = c("Country Name", "Country ISO3", "Year", "Indicator Name", "Indicator Code", "Value"),
+                 new = c("countryName", "countryCode", "year", "indicatorName", "indicatorCode", "value"))
+
+
+# Ensure correct column types
+allData[, year := as.integer(year)]
+allData[, value := as.numeric(value)]
+```
+
+## Merge Datasets (already done by rbindlist)
+
+We merged data for Albania, Croatia, and Malta using `rbindlist()`.
+
+## Quick Exploration
+
+```{r exploration}
+allData[, .N, by = .(countryName)]
+allData[, .N, by = .(indicatorName)][1:10]
+```

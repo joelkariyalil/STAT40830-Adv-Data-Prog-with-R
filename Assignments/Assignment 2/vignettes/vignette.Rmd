@@ -1,0 +1,93 @@
+---
+title: "Using the CountryHealthAnalysis Package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using the CountryHealthAnalysis Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(CountryHealthAnalysis)
+library(ggplot2)
+```
+
+# Introduction
+
+This vignette demonstrates how to use the main functions of the `CountryHealthAnalysis` package to:
+
+- Load cleaned indicator data from `.csv` files
+- Use print and summary methods for inspection
+- Visualize top or selected indicators using the plot method
+
+# Reading Country Indicator Data
+
+```{r read}
+irlPath <- system.file("extdata", "indicators_irl.csv", package = "CountryHealthAnalysis")
+mltPath <- system.file("extdata", "indicators_mlt.csv", package = "CountryHealthAnalysis")
+
+irl <- readIndicators(irlPath)
+mlt <- readIndicators(mltPath)
+```
+
+# Print Method Examples
+
+### Default: Print summary for top 3 indicators
+
+```{r print-default}
+print(irl)
+```
+
+### Print with selected indicators
+
+```{r print-custom}
+print(irl, indicatorList = c("Net migration", "Urban population (% of total)"))
+```
+
+# Summary Method Examples
+
+### Default: Top 7 indicators
+
+```{r summary-default}
+summary(mlt)
+```
+
+### Custom: Summary for selected indicators
+
+```{r summary-custom}
+summary(mlt, indicatorList = c("CO2 emissions (metric tons per capita)", "Population, total"))
+```
+
+### Change number of top indicators
+
+```{r summary-topN}
+summary(irl, topN = 10)
+```
+
+# Plot Method Examples
+
+### Default: Plot top 3 indicators
+
+```{r plot-default, fig.width = 10, fig.height = 5}
+plot(irl)
+```
+
+### Plot selected indicators
+
+```{r plot-custom, fig.width = 10, fig.height = 5}
+plot(irl, indicatorList = c("Net migration", "School enrollment, primary (% gross)"))
+```
+
+### Plot top 5 indicators using faceting
+
+```{r plot-facet, fig.width = 10, fig.height = 6}
+plot(mlt, topN = 5, facet = TRUE)
+```
+
+# Closing Notes
+
+All methods (`print`, `summary`, `plot`) use S3 dispatch and accept additional arguments such as `indicatorList` and `topN` for customized exploration.

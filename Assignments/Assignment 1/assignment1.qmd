@@ -1,0 +1,355 @@
+---
+title: "Economic, Social, Environmental, Health, Education, Development and Energy of Albania, Croatia and Malta"
+author: "Joel Thomas Chacko"
+institute: "University College Dublin"
+format: 
+  revealjs:
+    theme: simple
+    slide-number: false
+    center: false
+    css: custom-styles/casy.css
+    code-overflow: wrap
+    code-line-numbers: true
+    echo: true
+    transition: slide
+    fontsize: 85%
+    margin: 0.15
+editor: visual
+---
+
+## Introduction
+
+<br>
+
+-   This presentation analyzes **Economic**, **Social**, **Environmental**, **Health**, **Education**, **Development**, and **Energy** indicators for **Albania**, **Croatia**, and **Malta** using World Bank data.
+
+-   Through this presentation **Environmental**, **Social** and **Developmental** aspects of the 3 countries are focused on, various tables and graphs are used to understand the same.
+
+------------------------------------------------------------------------
+
+## Load Libraries & Data
+
+```{r setup, include=FALSE}
+library(data.table)
+library(ggplot2)
+library(knitr)
+options(datatable.print.topn = 100)
+```
+
+```{r load-data}
+albania <- fread("datasets/indicators_alb_albania.csv")
+croatia <- fread("datasets/indicators_hrv_croatia.csv")
+malta <- fread("datasets/indicators_mlt_malta.csv")
+albania <- albania[-1]; croatia <- croatia[-1]; malta <- malta[-1]
+allData <- rbindlist(list(albania, croatia, malta))
+
+# Setting new names
+setnames(allData, old = c("Country Name", "Country ISO3", "Year", "Indicator Name", "Indicator Code"
+                          , "Value"),
+         new = c("countryName", "countryCode", "year", "indicatorName", "indicatorCode", "value"))
+
+# Type setting values
+allData[, year := as.integer(year)]
+allData[, value := as.numeric(value)]
+```
+
+<br><br>
+
+### Discussion
+
+-   Renaming columns names and merged data using `data.table` using `rbindlist()`.
+-   Table values are type set.
+
+------------------------------------------------------------------------
+
+## Data Set Exploration
+
+```{r}
+totalRows <- nrow(allData)
+totalCols <- ncol(allData)
+totalIndicators <- uniqueN(allData$indicatorName)
+totalCountries <- uniqueN(allData$countryName)
+yearSpan <- range(allData$year, na.rm = TRUE)
+summaryTable <- data.table(
+  Metric = c("Total Rows", "Total Columns", "Unique Indicators", "Countries Included",
+             "Year Range Start", "Year Range End"),
+  Value = c(totalRows, totalCols, totalIndicators, totalCountries, yearSpan[1], yearSpan[2])
+)
+```
+
+```{r echo=FALSE}
+knitr::kable(summaryTable, caption = "Basic Dataset Summary")
+```
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+## Complete List of Indicators present in the Data
+
+```{r unique-indicators}
+allIndicators <- unique(allData$indicatorName)
+cat(length(allIndicators))
+
+knitr::kable(data.table(Indicator = head(allIndicators, 8)), caption = "List of a few Indicators")
+```
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+## GDP Per Capita (Over Time)
+
+```{r gdp-compute}
+gdpData <- allData[indicatorName == "GDP per capita (current US$)"]
+```
+
+```{r gdp-plot, echo=FALSE}
+ggplot(gdpData, aes(x = year, y = value, color = countryName)) +
+  geom_line(size=1.4) +
+  labs(title = "GDP Per Capita Over Time", y = "USD", x = "Year") +
+  theme_minimal()
+```
+
+### Discussion
+
+- Malta's GDP has also been experiencing an exponential growth over the past few years.
+- All countries has shown an upward trend over time, indicating economic growth.
+
+
+
+
+
+------------------------------------------------------------------------
+
+## Average GDP per Capita
+
+```{r gdp-avg-compute}
+gdpAvg <- gdpData[, .(avgGDP = mean(value, na.rm = TRUE)), keyby = countryName]
+
+ggplot(gdpAvg, aes(x = reorder(countryName, avgGDP), y = avgGDP, fill = countryName)) +
+  geom_bar(stat = "identity", width=0.7) + coord_flip() +
+  labs(title = "Average GDP", x = "Country", y = "USD") + theme_minimal()
+```
+
+
+### Discussions
+
+- Malta’s average GDP per capita is significantly higher than both Croatia and Albania.
+- Albania's GDP seems to have the lowest GDP across all the three countries.
+- (Used ggplot2 to display the computed average GDP per country)
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+
+
+
+## GDP Standard Deviation (Volatility)
+
+```{r gdp-sd-compute}
+gdpSD <- gdpData[, .(sdGDP = sd(value, na.rm=TRUE)), keyby = countryName]
+
+ggplot(gdpSD, aes(x = reorder(countryName, sdGDP), y = sdGDP, fill = countryName)) +
+  geom_bar(stat = "identity", width=0.7) + coord_flip() +
+  labs(title = "GDP Standard Deviation", y = "USD") + theme_minimal()
+```
+
+
+### Discussions
+
+- Malta highest volatility
+- (Used ggplot2 to display the computed Standard Deviation GDP per country)
+
+
+------------------------------------------------------------------------
+
+
+
+
+
+
+
+## Renewable Energy (Yearly)
+
+```{r renew-compute}
+renewData <- allData[indicatorName == "Renewable energy consumption (% of total final energy consumption)"]
+renewByYear <- renewData[, .(avgRenew = mean(value, na.rm=TRUE)), keyby = .(countryName, year)]
+
+ggplot(renewByYear, aes(x = year, y = avgRenew, color = countryName)) +
+  geom_line(size=1.4) + labs(title = "Renewable Energy Share", y="%") + theme_minimal()
+```
+
+
+### Discussions
+
+- Albania consistently has the highest renewable energy share among the three countries.
+- Malta has been recently seeing an increase in it's renewable share.
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+## Renewable Energy Averages Table
+
+```{r renew-table}
+renewSummaryTable <- renewData[, .(avgRenew = mean(value, na.rm=TRUE)), keyby = countryName]
+setnames(renewSummaryTable, old = c("countryName", "avgRenew"),
+         new = c("Country Name", "Average Renewable Energy"))
+kable(renewSummaryTable[order(-`Average Renewable Energy`)], 
+      caption = "Average Renewable Energy Share by Country")
+
+```
+
+### Discussions
+
+- We clearly see that Albania has the highest average renewable energy.
+- Using `knitr` to display the table name.
+
+
+------------------------------------------------------------------------
+
+
+
+
+
+
+
+## Literacy Rate
+
+```{r literacy-compute}
+literacyData <- allData[grepl("literacy rate", tolower(indicatorName))]
+literacyAvg <- literacyData[, .(avgLit = mean(value, na.rm=TRUE)), keyby = countryName]
+
+ggplot(literacyAvg, aes(x = reorder(countryName, avgLit), y = avgLit, fill = countryName)) +
+  geom_bar(stat = "identity", width=0.7) + coord_flip() +
+  labs(title = "Literacy Rate", y = "%") + theme_minimal()
+```
+
+### Discussions
+
+- The literacy rate among these three countries seem comparable.
+- Used `keyby` to filter for the country names and calculate the averages.
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+## Population Growth Rate
+
+```{r pop-growth-compute}
+popData <- allData[indicatorName == "Population, total"]
+popGrowth <- popData[, .(growth = (last(value)-first(value))/first(value)),
+                     keyby = countryName]
+
+ggplot(popGrowth, aes(x = reorder(countryName, growth), y = growth, fill = countryName)) +
+  geom_bar(stat = "identity", width=0.7) + coord_flip() +
+  labs(title = "Population Growth") + theme_minimal()
+```
+
+### Discussion
+
+- Croatia seems to be experiencing marginal growth.
+- Both Albania and Malta seem to be experiencing shrinking populations
+
+
+
+
+------------------------------------------------------------------------
+
+## Population Max/Min Table
+
+```{r pop-summary-table}
+popSummary <- popData[, .(minPop = min(value, na.rm=TRUE), maxPop = max(value, na.rm=TRUE)), 
+                      keyby = countryName]
+
+# Rename columns for display
+setnames(popSummary, old = c("countryName", "minPop", "maxPop"), 
+                      new = c("Country Name", "Minimum Population", "Maximum Population"))
+
+kable(popSummary, caption = "Population Summary")
+```
+
+### Discussion
+
+- The above table displays the minimum and the maximum number of populations in these 3 countries.
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+
+
+
+
+## Average CO2 Damage
+
+
+```{r average-co2-damage}
+# carbon dioxide damage indicator
+co2Data <- allData[indicatorName == "Adjusted savings: carbon dioxide damage (current US$)"]
+co2Avg <- co2Data[, .(avgCO2 = mean(value, na.rm=TRUE)), keyby = countryName]
+setnames(co2Avg, old = c("countryName", "avgCO2"), 
+                 new = c("Country Name", "Average CO2 Damage (US$)"))
+ggplot(co2Avg, aes(x = reorder(`Country Name`, `Average CO2 Damage (US$)`), 
+                   y = `Average CO2 Damage (US$)`, fill = `Country Name`)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  coord_flip() +
+  labs(title = "Average CO2 Damage", x = "Country", y = "CO2 Damage (US$)") +
+  theme_minimal()
+```
+
+### Discussion
+
+- From the above graph, we see that Croatia seems to be the country with the highest Carbon Dioxide damage.
+- Malta has the least damage compared to the 3 countries.
+
+
+
+
+------------------------------------------------------------------------
+
+
+
+
+
+## Summary
+
+- We explored the Economic Indicators, Environmental Indicators, Social and Developmental Indicators of the Albania, Croatia, and Malta.
+- Malta had the highest average GDP per capita, Malta also showed the highest volatility in the GDP, with a positive SD.
+- Albania seemed to lead in the renewable energy consumption and Croatia seemed to have the highest average Carbon dioxide damage among the three countries.
+- Literacy rates among the three countries were comparable.
+- **General Observation**:  
+  Each country demonstrated distinct strengths:  
+  - **Albania**: Renewable Energy  
+  - **Malta**: Economic Performance (GDP)  
+  - **Croatia**: Moderate Economic Growth with Higher CO₂ Damage
+
+
+

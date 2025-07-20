@@ -52,7 +52,7 @@ kable(summaryTable, caption = "Mean Carbon Dioxide Uptake by Type and Treatment"
 
 From the above table, we can see that there 21 plants in each group, and we observe the following
 
--    \textcolor{red}{Highest} $CO_2$ Absorption: **Quebec - Nonchilled plants**
+-   \textcolor{red}{Highest} $CO_2$ Absorption: **Quebec - Nonchilled plants**
 
 -   \textcolor{blue}{Lowest} $CO_2$ Absorption: **Mississippi - Chilled plants**
 

@@ -1,0 +1,21 @@
+% --- Set slide size and margins ---
+\usepackage[size=custom,width=14,height=8,scale=1.0]{beamerposter}
+\setbeamersize{text margin left=10pt,text margin right=10pt}
+
+% This makes slides wider and slightly lower than default.
+% Feel free to adjust width/height as you wish.
+
+% --- Code block customization ---
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  breaklines,                 % wrap long lines
+  commandchars=\\\{\},        % allow LaTeX symbols inside code
+  fontsize=\scriptsize,       % smaller code font size
+  frame=single,               % box around code
+  rulecolor=\color{gray},     % gray border color
+  xleftmargin=5pt,            % small left indent
+  baselinestretch=1.1         % slightly larger line spacing
+}
+
+% --- Optional: improve font rendering (good on most systems) ---
+\usepackage{lmodern}
