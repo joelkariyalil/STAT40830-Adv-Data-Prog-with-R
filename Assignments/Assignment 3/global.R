@@ -3,6 +3,7 @@ library(shiny)
 library(DT)
 library(ggplot2)
 library(data.table)
+library(RColorBrewer)
 
 # Global Settings
 options(shiny.maxRequestSize = 30 * 1024^2)  # Allow up to 30MB file uploads

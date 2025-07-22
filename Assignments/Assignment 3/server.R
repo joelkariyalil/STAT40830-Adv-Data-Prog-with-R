@@ -1,6 +1,14 @@
 server <- function(input, output, session) {
     dataStore <- reactiveVal(builtInData)
     
+    # Helper function to get colors based on palette selection
+    getColors <- function(palette, n = 1) {
+        switch(palette,
+               "set3" = RColorBrewer::brewer.pal(n = max(3, min(12, n)), name = "Set3")[1:n],
+               "blues" = RColorBrewer::brewer.pal(n = max(3, n), name = "Blues")[1:n],
+               "default" = if(n == 1) "#2c3e50" else c("#2c3e50", "#3498db"))
+    }
+    
     selectedData <- reactive({
         req(input$selectedCountry)
         dataStore()[[input$selectedCountry]]
@@ -53,7 +61,6 @@ server <- function(input, output, session) {
         req(input$cols)
         req(all(input$cols %in% names(dat)))
         
-        # Ensure we get a data.frame by using .SD
         filtered <- dat[, .SD, .SDcols = input$cols]
         datatable(
             head(filtered, input$numRows),
@@ -83,9 +90,11 @@ server <- function(input, output, session) {
         agg_fun <- match.fun(input$plot1Agg)
         agg <- sub[, .(Value = agg_fun(Value, na.rm = TRUE)), by = Year]
         
+        colors <- getColors(input$plot1ColorPalette)
+        
         ggplot(agg, aes(x = Year, y = Value)) +
-            geom_line(linewidth = 1, color = "#2c3e50") +
-            geom_point(size = 3, color = "#2c3e50") +
+            geom_line(linewidth = 1, color = colors[1]) +
+            geom_point(size = 3, color = colors[1]) +
             labs(title = paste(toupper(input$plot1Agg), "of", input$plot1Indicator),
                  x = "Year", y = "Value") +
             theme_minimal() +
@@ -115,8 +124,10 @@ server <- function(input, output, session) {
             plot_data <- sub[order(Value)][1:min(10, .N)]
         }
         
+        colors <- getColors(input$plot2ColorPalette)
+        
         ggplot(plot_data, aes(x = reorder(paste(Year), Value), y = Value)) +
-            geom_col(fill = "#3498db", color = "#2980b9", alpha = 0.7) +
+            geom_col(fill = colors[1], color = adjustcolor(colors[1], alpha.f = 0.7), alpha = 0.7) +
             geom_text(aes(label = round(Value, 2)), 
                      vjust = ifelse(plot_data$Value >= 0, -0.5, 1.5),
                      color = "#2c3e50", size = 3.5) +
@@ -154,6 +165,7 @@ server <- function(input, output, session) {
         sub[, RollingMean := frollmean(Value, n = window_size, align = "right")]
         
         rolling_label <- paste(window_size, "Year Rolling Average")
+        colors <- getColors(input$plot3ColorPalette, n = 2)
         
         ggplot(sub, aes(x = Year)) +
             geom_line(aes(y = Value, color = "Actual Value"), alpha = 0.7, linewidth = 1) +
@@ -163,8 +175,8 @@ server <- function(input, output, session) {
             scale_color_manual(
                 name = "Series",
                 values = c(
-                    "Actual Value" = "#95a5a6",
-                    rolling_label = "#2980b9"
+                    "Actual Value" = colors[1],
+                    rolling_label = colors[2]
                 )
             ) +
             labs(

@@ -51,7 +51,11 @@ ui <- fluidPage(
                     selectInput("plot1Agg", "Aggregation Function", 
                               choices = c("Mean" = "mean", "Median" = "median", "Sum" = "sum")),
                     sliderInput("plot1Year", "Year Range", min = 1960, max = 2024, 
-                              value = c(2010, 2020), step = 1)
+                              value = c(2010, 2020), step = 1),
+                    selectInput("plot1ColorPalette", "Color Palette",
+                              choices = c("Default" = "default",
+                                        "Set3" = "set3",
+                                        "Blues" = "blues"))
                 ),
                 
                 # Plot 2 Settings - only show when Top/Bottom Values tab is active
@@ -65,7 +69,11 @@ ui <- fluidPage(
                                   "Top 10 Lowest Values" = "bottom"
                               )),
                     sliderInput("plot2Year", "Year Range", min = 1960, max = 2024, 
-                              value = c(2010, 2020), step = 1)
+                              value = c(2010, 2020), step = 1),
+                    selectInput("plot2ColorPalette", "Color Palette",
+                              choices = c("Default" = "default",
+                                        "Set3" = "set3",
+                                        "Blues" = "blues"))
                 ),
                 
                 # Plot 3 Settings - only show when Rolling Average tab is active
@@ -75,7 +83,11 @@ ui <- fluidPage(
                     selectizeInput("plot3Indicator", "Select Indicator", choices = NULL),
                     numericInput("plot3Window", "Rolling Average Window Size (Years):", 5, min = 2, max = 10),
                     sliderInput("plot3Year", "Year Range", min = 1960, max = 2024, 
-                              value = c(2010, 2020), step = 1)
+                              value = c(2010, 2020), step = 1),
+                    selectInput("plot3ColorPalette", "Color Palette",
+                              choices = c("Default" = "default",
+                                        "Set3" = "set3",
+                                        "Blues" = "blues"))
                 )
             )
         ),
