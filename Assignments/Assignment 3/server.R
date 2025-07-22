@@ -1,7 +1,8 @@
 server <- function(input, output, session) {
+    # Initialize reactive values
     dataStore <- reactiveVal(builtInData)
     
-    # Helper function to get colors based on palette selection
+    # Color palette helper function
     getColors <- function(palette, n = 1) {
         switch(palette,
                "set3" = RColorBrewer::brewer.pal(n = max(3, min(12, n)), name = "Set3")[1:n],
@@ -9,11 +10,13 @@ server <- function(input, output, session) {
                "default" = if(n == 1) "#2c3e50" else c("#2c3e50", "#3498db"))
     }
     
+    # Get selected data
     selectedData <- reactive({
         req(input$selectedCountry)
         dataStore()[[input$selectedCountry]]
     })
     
+    # Update indicator choices
     observe({
         inds <- unique(selectedData()$`Indicator Name`)
         updateSelectizeInput(session, "plot1Indicator", choices = inds, server = TRUE)
@@ -21,6 +24,7 @@ server <- function(input, output, session) {
         updateSelectizeInput(session, "plot3Indicator", choices = inds, server = TRUE)
     })
     
+    # Handle file uploads
     observeEvent(input$uploadFile, {
         file <- input$uploadFile
         if (is.null(file)) return()
@@ -28,14 +32,13 @@ server <- function(input, output, session) {
         tryCatch({
             newData <- readIndicators(file$datapath)
             countryName <- unique(newData$`Country Name`)[1]
+            
             if (!is.na(countryName) && nzchar(countryName)) {
                 updated <- dataStore()
                 updated[[countryName]] <- newData
                 dataStore(updated)
-                updateSelectInput(session, "selectedCountry", 
-                                choices = names(updated))
-                showNotification(paste("Loaded:", countryName), 
-                               type = "message")
+                updateSelectInput(session, "selectedCountry", choices = names(updated))
+                showNotification(paste("Loaded:", countryName), type = "message")
             } else {
                 showNotification("Upload failed: Missing country name in file", type = "error")
             }
@@ -44,10 +47,12 @@ server <- function(input, output, session) {
         })
     })
     
+    # Update title
     output$titleText <- renderText({
         paste("Data for:", input$selectedCountry)
     })
     
+    # Generate column selector
     output$colSelector <- renderUI({
         dat <- selectedData()
         if (is.null(dat) || nrow(dat) == 0) return(NULL)
@@ -56,6 +61,7 @@ server <- function(input, output, session) {
                          selected = names(dat))
     })
     
+    # Render data table
     output$dataTable <- renderDT({
         dat <- selectedData()
         req(input$cols)
@@ -75,9 +81,12 @@ server <- function(input, output, session) {
         )
     })
     
+    # Render Time Series plot
     output$plot1 <- renderPlot({
         req(input$plot1Indicator)
         dat <- selectedData()
+        
+        # Filter data
         sub <- dat[`Indicator Name` == input$plot1Indicator &
                    Year >= input$plot1Year[1] & Year <= input$plot1Year[2]]
         
@@ -87,17 +96,52 @@ server <- function(input, output, session) {
                    theme_void())
         }
         
-        agg_fun <- match.fun(input$plot1Agg)
-        agg <- sub[, .(Value = agg_fun(Value, na.rm = TRUE)), by = Year]
+        # Get colors
+        colors <- getColors(input$plot1ColorPalette, 1)
         
-        colors <- getColors(input$plot1ColorPalette)
+        # Create base plot
+        if (input$plot1Agg == "none") {
+            # Raw values
+            p <- ggplot(sub, aes(x = Year, y = Value)) +
+                geom_line(color = colors[1], linewidth = 1) +
+                geom_point(color = colors[1], size = 3) +
+                labs(title = paste("Values for", input$plot1Indicator),
+                     x = "Year", y = "Value")
+            
+        } else if (input$plot1Agg == "running_mean") {
+            # Calculate running mean
+            setorder(sub, Year)
+            sub[, RunningMean := frollmean(Value, n = 5, align = "right")]
+            p <- ggplot(sub, aes(x = Year, y = RunningMean)) +
+                geom_line(color = colors[1], linewidth = 1) +
+                geom_point(color = colors[1], size = 3) +
+                labs(title = paste("5-Year Running Mean of", input$plot1Indicator),
+                     x = "Year", y = "5-Year Running Mean")
+            
+        } else if (input$plot1Agg == "cumsum") {
+            # Calculate cumulative sum
+            setorder(sub, Year)
+            sub[, CumulativeSum := cumsum(Value)]
+            p <- ggplot(sub, aes(x = Year, y = CumulativeSum)) +
+                geom_line(color = colors[1], linewidth = 1) +
+                geom_point(color = colors[1], size = 3) +
+                labs(title = paste("Cumulative Sum of", input$plot1Indicator),
+                     x = "Year", y = "Cumulative Sum")
+            
+        } else if (input$plot1Agg == "yoy") {
+            # Calculate year-over-year change
+            setorder(sub, Year)
+            sub[, YoYChange := (Value - shift(Value)) / shift(Value) * 100]
+            p <- ggplot(sub, aes(x = Year, y = YoYChange)) +
+                geom_line(color = colors[1], linewidth = 1) +
+                geom_point(color = colors[1], size = 3) +
+                geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+                labs(title = paste("Year-over-Year % Change in", input$plot1Indicator),
+                     x = "Year", y = "Change (%)")
+        }
         
-        ggplot(agg, aes(x = Year, y = Value)) +
-            geom_line(linewidth = 1, color = colors[1]) +
-            geom_point(size = 3, color = colors[1]) +
-            labs(title = paste(toupper(input$plot1Agg), "of", input$plot1Indicator),
-                 x = "Year", y = "Value") +
-            theme_minimal() +
+        # Add common theme elements
+        p + theme_minimal() +
             theme(
                 plot.title = element_text(size = 14, face = "bold"),
                 panel.grid.major = element_line(color = "#e9ecef"),
@@ -105,6 +149,7 @@ server <- function(input, output, session) {
             )
     })
     
+    # Render Top/Bottom Values plot
     output$plot2 <- renderPlot({
         req(input$plot2Indicator)
         dat <- selectedData()
@@ -118,16 +163,18 @@ server <- function(input, output, session) {
                    theme_void())
         }
         
-        if (input$plot2Order == "top") {
-            plot_data <- sub[order(-Value)][1:min(10, .N)]
+        # Get top/bottom values
+        plot_data <- if(input$plot2Order == "top") {
+            sub[order(-Value)][1:min(10, .N)]
         } else {
-            plot_data <- sub[order(Value)][1:min(10, .N)]
+            sub[order(Value)][1:min(10, .N)]
         }
         
-        colors <- getColors(input$plot2ColorPalette)
+        # Create plot
+        colors <- getColors(input$plot2ColorPalette, 1)
         
-        ggplot(plot_data, aes(x = reorder(paste(Year), Value), y = Value)) +
-            geom_col(fill = colors[1], color = adjustcolor(colors[1], alpha.f = 0.7), alpha = 0.7) +
+        ggplot(plot_data, aes(x = reorder(as.character(Year), Value), y = Value)) +
+            geom_col(fill = colors[1], alpha = 0.7) +
             geom_text(aes(label = round(Value, 2)), 
                      vjust = ifelse(plot_data$Value >= 0, -0.5, 1.5),
                      color = "#2c3e50", size = 3.5) +
@@ -146,6 +193,7 @@ server <- function(input, output, session) {
             )
     })
     
+    # Render Rolling Average plot
     output$plot3 <- renderPlot({
         req(input$plot3Indicator)
         dat <- selectedData()
@@ -159,28 +207,26 @@ server <- function(input, output, session) {
                    theme_void())
         }
         
-        sub <- sub[order(Year)]
+        # Calculate rolling mean
         window_size <- input$plot3Window
-        
+        setorder(sub, Year)
         sub[, RollingMean := frollmean(Value, n = window_size, align = "right")]
         
-        rolling_label <- paste(window_size, "Year Rolling Average")
-        colors <- getColors(input$plot3ColorPalette, n = 2)
+        # Get colors
+        colors <- getColors(input$plot3ColorPalette, 2)
         
+        # Create plot
         ggplot(sub, aes(x = Year)) +
-            geom_line(aes(y = Value, color = "Actual Value"), alpha = 0.7, linewidth = 1) +
-            geom_point(aes(y = Value, color = "Actual Value"), size = 2, alpha = 0.7) +
-            geom_line(aes(y = RollingMean, color = rolling_label),
-                     linewidth = 1.5) +
+            geom_line(aes(y = Value, color = "Actual"), linewidth = 1, alpha = 0.7) +
+            geom_point(aes(y = Value, color = "Actual"), size = 2) +
+            geom_line(aes(y = RollingMean, color = "Rolling Average"), 
+                     linewidth = 1.2, linetype = "dashed") +
             scale_color_manual(
                 name = "Series",
-                values = c(
-                    "Actual Value" = colors[1],
-                    rolling_label = colors[2]
-                )
+                values = c("Actual" = colors[1], "Rolling Average" = colors[2])
             ) +
             labs(
-                title = paste("Time Series with Rolling Average for", input$plot3Indicator),
+                title = paste(window_size, "Year Rolling Average for", input$plot3Indicator),
                 x = "Year",
                 y = "Value"
             ) +
@@ -188,10 +234,8 @@ server <- function(input, output, session) {
             theme(
                 plot.title = element_text(size = 14, face = "bold"),
                 legend.position = "top",
-                legend.box = "horizontal",
                 panel.grid.major = element_line(color = "#e9ecef"),
                 panel.grid.minor = element_blank()
-            ) +
-            guides(color = guide_legend(nrow = 1))
+            )
     })
 } 

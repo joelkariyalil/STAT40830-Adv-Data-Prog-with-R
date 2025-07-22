@@ -1,5 +1,6 @@
+# Define UI
 ui <- fluidPage(
-    # Custom CSS
+    # Custom CSS styles
     tags$head(
         tags$style(HTML("
             .sidebar { background-color: #f8f9fa; padding: 15px; border-radius: 10px; }
@@ -14,20 +15,24 @@ ui <- fluidPage(
         "))
     ),
     
-    # Title with custom style
+    # Dashboard header
     div(
         style = "background-color: #2c3e50; color: white; padding: 15px; margin-bottom: 20px; border-radius: 10px;",
         titlePanel("Country Health Analysis Dashboard")
     ),
     
+    # Main layout
     sidebarLayout(
+        # Sidebar panel
         sidebarPanel(
             class = "sidebar",
+            # Country selection
             selectInput("selectedCountry", "Select Country:",
                         choices = names(builtInData),
                         selected = names(builtInData)[1],
                         multiple = FALSE),
             
+            # File upload
             div(
                 style = "background-color: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
                 fileInput("uploadFile", "Upload new indicators_COUNTRYCODE.csv", accept = ".csv")
@@ -43,13 +48,18 @@ ui <- fluidPage(
             # Plot controls
             conditionalPanel(
                 condition = "input.mainTabs == 'Plots'",
-                # Plot 1 Settings - only show when Time Series tab is active
+                # Time Series settings
                 conditionalPanel(
                     condition = "input.plotTab == 'Time Series'",
                     h4("Time Series Settings:", style = "color: #2c3e50;"),
                     selectizeInput("plot1Indicator", "Indicator", choices = NULL),
-                    selectInput("plot1Agg", "Aggregation Function", 
-                              choices = c("Mean" = "mean", "Median" = "median", "Sum" = "sum")),
+                    selectInput("plot1Agg", "View Type", 
+                              choices = c(
+                                "Raw Values" = "none",
+                                "Running Mean (5-year)" = "running_mean",
+                                "Cumulative Sum" = "cumsum",
+                                "Year-over-Year Change %" = "yoy"
+                              )),
                     sliderInput("plot1Year", "Year Range", min = 1960, max = 2024, 
                               value = c(2010, 2020), step = 1),
                     selectInput("plot1ColorPalette", "Color Palette",
@@ -58,7 +68,7 @@ ui <- fluidPage(
                                         "Blues" = "blues"))
                 ),
                 
-                # Plot 2 Settings - only show when Top/Bottom Values tab is active
+                # Top/Bottom Values settings
                 conditionalPanel(
                     condition = "input.plotTab == 'Top/Bottom Values'",
                     h4("Top/Bottom Values Settings:", style = "color: #2c3e50;"),
@@ -76,7 +86,7 @@ ui <- fluidPage(
                                         "Blues" = "blues"))
                 ),
                 
-                # Plot 3 Settings - only show when Rolling Average tab is active
+                # Rolling Average settings
                 conditionalPanel(
                     condition = "input.plotTab == 'Rolling Average'",
                     h4("Rolling Average Settings:", style = "color: #2c3e50;"),
@@ -92,14 +102,17 @@ ui <- fluidPage(
             )
         ),
         
+        # Main panel
         mainPanel(
             h4(textOutput("titleText"), style = "color: #2c3e50;"),
             div(
                 class = "plot-container",
                 tabsetPanel(id = "mainTabs",
+                    # Data view
                     tabPanel("Data", 
                         DTOutput("dataTable")
                     ),
+                    # Plot view
                     tabPanel("Plots",
                         tabsetPanel(
                             id = "plotTab",

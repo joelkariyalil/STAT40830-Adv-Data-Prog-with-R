@@ -1,25 +1,26 @@
-# Required Libraries
+# Load required packages
 library(shiny)
 library(DT)
 library(ggplot2)
 library(data.table)
 library(RColorBrewer)
 
-# Global Settings
-options(shiny.maxRequestSize = 30 * 1024^2)  # Allow up to 30MB file uploads
+# Set global options
+options(shiny.maxRequestSize = 30 * 1024^2)  # 30MB file upload limit
 
-#' Read and process indicator files
+#' Read and process World Bank indicator data files
+#' 
 #' @param file_path Path to the CSV file
 #' @return data.table with processed indicators
 readIndicators <- function(file_path) {
-    # Skip metadata row and read data
+    # Read data, skipping metadata row
     dt <- fread(file_path, skip = 1, header = TRUE)
     
-    # Set proper column names
+    # Set standardized column names
     setnames(dt, c("Country Name", "Country ISO3", "Year", 
                    "Indicator Name", "Indicator Code", "Value"))
     
-    # Convert values to numeric, handling non-numeric entries
+    # Convert values to numeric, removing any non-numeric characters
     dt[, Value := as.numeric(gsub("[^0-9.-]", "", Value))]
     
     return(dt)
