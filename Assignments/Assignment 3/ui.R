@@ -1,6 +1,13 @@
-# UI
+################################################################################
+# UI Definition - Country Health Analysis Dashboard
+################################################################################
+
 ui <- fluidPage(
-    # Custom CSS styles for different heading tags
+    
+    ############################################################################
+    # CSS Styling and Theme
+    ############################################################################
+    
     tags$head(
         tags$style(HTML("
             .sidebar { background-color: #f8f9fa; padding: 15px; border-radius: 10px; }
@@ -15,41 +22,55 @@ ui <- fluidPage(
         "))
     ),
     
-    # Dashboard header css snd adding title
+    ############################################################################
+    # Dashboard Header
+    ############################################################################
+    
     div(
         style = "background-color: #0000FF; color: white; padding: 15px; margin-bottom: 20px; border-radius: 10px;",
         titlePanel("Country Health Analysis Dashboard")
     ),
     
-    # Main layout
+    ############################################################################
+    # Main Layout Structure
+    ############################################################################
+    
     sidebarLayout(
         
-        # adding sidebar panel for the layout
+        ########################################################################
+        # Sidebar Panel - Controls and Settings
+        ########################################################################
+        
         sidebarPanel(
             class = "sidebar",
-            # Country selection
-            selectInput("selectedCountry", "Select Country:",
-                        choices = names(builtInData),
-                        selected = names(builtInData)[1],
-                        multiple = FALSE),
             
-            # File upload bar
+            ### Country Selection Controls
+            selectInput("selectedCountry", "Select Countries:",
+                        choices = names(builtInData),
+                        selected = names(builtInData)[1:2],
+                        multiple = TRUE),
+            
+            ### File Upload Section
             div(
                 style = "background-color: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
                 fileInput("uploadFile", "Upload new indicators_COUNTRYCODE.csv", accept = ".csv")
             ),
             
-            # Data table controls 
+            ### Data Table Controls
             conditionalPanel(
                 condition = "input.mainTabs == 'Data'",
                 numericInput("numRows", "Rows to display:", 10, min = 1),
                 uiOutput("colSelector")
             ),
             
-            # Plot controls
+            ############################################################
+            # Plot Controls and Settings
+            ############################################################
+            
             conditionalPanel(
                 condition = "input.mainTabs == 'Plots'",
-                # Time Series settings
+                
+                ### Time Series Settings
                 conditionalPanel(
                     condition = "input.plotTab == 'Time Series'",
                     h4("Time Series Settings:", style = "color: #2c3e50;"),
@@ -69,7 +90,7 @@ ui <- fluidPage(
                                         "Blues" = "blues"))
                 ),
                 
-                # Top/Bottom Values settings for plot 2
+                ### Top/Bottom Values Settings
                 conditionalPanel(
                     condition = "input.plotTab == 'Top/Bottom Values'",
                     h4("Top/Bottom Values Settings:", style = "color: #2c3e50;"),
@@ -86,8 +107,8 @@ ui <- fluidPage(
                                         "Set3" = "set3",
                                         "Blues" = "blues"))
                 ),
-                # creating an extra plot
-                # Rolling Average settings for plot 3
+                
+                ### Rolling Average Settings
                 conditionalPanel(
                     condition = "input.plotTab == 'Rolling Average'",
                     h4("Rolling Average Settings:", style = "color: #2c3e50;"),
@@ -103,18 +124,27 @@ ui <- fluidPage(
             )
         ),
         
-        # Main panel
+        ########################################################################
+        # Main Panel - Display Area
+        ########################################################################
+        
         mainPanel(
             h4(textOutput("titleText"), style = "color: #2c3e50;"),
-            # creating two tab panels for better UI experience
+            
+            ########################################################
+            # Tab Panel Container - Main Content Area
+            ########################################################
+            
             div(
                 class = "plot-container",
                 tabsetPanel(id = "mainTabs",
-                    # Data view
+                    
+                    ### Data View Tab
                     tabPanel("Data", 
-                        DTOutput("dataTable")
+                        uiOutput("dynamicDataTables")
                     ),
-                    # Plot view
+                    
+                    ### Plot View Tab
                     tabPanel("Plots",
                         tabsetPanel(
                             id = "plotTab",
