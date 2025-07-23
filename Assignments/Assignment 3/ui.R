@@ -1,6 +1,6 @@
-# Define UI
+# UI
 ui <- fluidPage(
-    # Custom CSS styles
+    # Custom CSS styles for different heading tags
     tags$head(
         tags$style(HTML("
             .sidebar { background-color: #f8f9fa; padding: 15px; border-radius: 10px; }
@@ -15,15 +15,16 @@ ui <- fluidPage(
         "))
     ),
     
-    # Dashboard header
+    # Dashboard header css snd adding title
     div(
-        style = "background-color: #2c3e50; color: white; padding: 15px; margin-bottom: 20px; border-radius: 10px;",
+        style = "background-color: #0000FF; color: white; padding: 15px; margin-bottom: 20px; border-radius: 10px;",
         titlePanel("Country Health Analysis Dashboard")
     ),
     
     # Main layout
     sidebarLayout(
-        # Sidebar panel
+        
+        # adding sidebar panel for the layout
         sidebarPanel(
             class = "sidebar",
             # Country selection
@@ -32,13 +33,13 @@ ui <- fluidPage(
                         selected = names(builtInData)[1],
                         multiple = FALSE),
             
-            # File upload
+            # File upload bar
             div(
                 style = "background-color: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
                 fileInput("uploadFile", "Upload new indicators_COUNTRYCODE.csv", accept = ".csv")
             ),
             
-            # Data table controls
+            # Data table controls 
             conditionalPanel(
                 condition = "input.mainTabs == 'Data'",
                 numericInput("numRows", "Rows to display:", 10, min = 1),
@@ -68,7 +69,7 @@ ui <- fluidPage(
                                         "Blues" = "blues"))
                 ),
                 
-                # Top/Bottom Values settings
+                # Top/Bottom Values settings for plot 2
                 conditionalPanel(
                     condition = "input.plotTab == 'Top/Bottom Values'",
                     h4("Top/Bottom Values Settings:", style = "color: #2c3e50;"),
@@ -85,8 +86,8 @@ ui <- fluidPage(
                                         "Set3" = "set3",
                                         "Blues" = "blues"))
                 ),
-                
-                # Rolling Average settings
+                # creating an extra plot
+                # Rolling Average settings for plot 3
                 conditionalPanel(
                     condition = "input.plotTab == 'Rolling Average'",
                     h4("Rolling Average Settings:", style = "color: #2c3e50;"),
@@ -105,6 +106,7 @@ ui <- fluidPage(
         # Main panel
         mainPanel(
             h4(textOutput("titleText"), style = "color: #2c3e50;"),
+            # creating two tab panels for better UI experience
             div(
                 class = "plot-container",
                 tabsetPanel(id = "mainTabs",

@@ -1,8 +1,12 @@
+################################################################################
+# Main Server Function
+################################################################################
+
 server <- function(input, output, session) {
     # Initialize reactive values
     dataStore <- reactiveVal(builtInData)
     
-    # Color palette helper function
+    # Color palette helper function to chsnge plotting colors for the plots
     getColors <- function(palette, n = 1) {
         switch(palette,
                "set3" = RColorBrewer::brewer.pal(n = max(3, min(12, n)), name = "Set3")[1:n],
@@ -10,7 +14,7 @@ server <- function(input, output, session) {
                "default" = if(n == 1) "#2c3e50" else c("#2c3e50", "#3498db"))
     }
     
-    # Get selected data
+    # retrieve the selected data
     selectedData <- reactive({
         req(input$selectedCountry)
         dataStore()[[input$selectedCountry]]
@@ -29,6 +33,7 @@ server <- function(input, output, session) {
         file <- input$uploadFile
         if (is.null(file)) return()
         
+        # must add try catching blocks to prevent error cascading through.
         tryCatch({
             newData <- readIndicators(file$datapath)
             countryName <- unique(newData$`Country Name`)[1]
@@ -47,7 +52,7 @@ server <- function(input, output, session) {
         })
     })
     
-    # Update title
+    # Updating title according to requirements
     output$titleText <- renderText({
         paste("Data for:", input$selectedCountry)
     })
@@ -61,7 +66,7 @@ server <- function(input, output, session) {
                          selected = names(dat))
     })
     
-    # Render data table
+    # Render data table post selection
     output$dataTable <- renderDT({
         dat <- selectedData()
         req(input$cols)
@@ -81,7 +86,15 @@ server <- function(input, output, session) {
         )
     })
     
-    # Render Time Series plot
+    
+    
+    
+    
+    
+    ############################################################################
+    # Render Time Series plot for the first plot
+    ############################################################################
+    
     output$plot1 <- renderPlot({
         req(input$plot1Indicator)
         dat <- selectedData()
@@ -96,10 +109,10 @@ server <- function(input, output, session) {
                    theme_void())
         }
         
-        # Get colors
+        # Get colors from the helper function
         colors <- getColors(input$plot1ColorPalette, 1)
         
-        # Create base plot
+        # Create base plot with no selections
         if (input$plot1Agg == "none") {
             # Raw values
             p <- ggplot(sub, aes(x = Year, y = Value)) +
@@ -109,7 +122,7 @@ server <- function(input, output, session) {
                      x = "Year", y = "Value")
             
         } else if (input$plot1Agg == "running_mean") {
-            # Calculate running mean
+            # Calculating the running mean
             setorder(sub, Year)
             sub[, RunningMean := frollmean(Value, n = 5, align = "right")]
             p <- ggplot(sub, aes(x = Year, y = RunningMean)) +
@@ -149,7 +162,17 @@ server <- function(input, output, session) {
             )
     })
     
+    
+    
+    
+
+    
+    
+    
+    ############################################################################
     # Render Top/Bottom Values plot
+    ############################################################################
+    
     output$plot2 <- renderPlot({
         req(input$plot2Indicator)
         dat <- selectedData()
@@ -164,7 +187,7 @@ server <- function(input, output, session) {
         }
         
         # Get top/bottom values
-        plot_data <- if(input$plot2Order == "top") {
+        plotData <- if(input$plot2Order == "top") {
             sub[order(-Value)][1:min(10, .N)]
         } else {
             sub[order(Value)][1:min(10, .N)]
@@ -173,10 +196,10 @@ server <- function(input, output, session) {
         # Create plot
         colors <- getColors(input$plot2ColorPalette, 1)
         
-        ggplot(plot_data, aes(x = reorder(as.character(Year), Value), y = Value)) +
+        ggplot(plotData, aes(x = reorder(as.character(Year), Value), y = Value)) +
             geom_col(fill = colors[1], alpha = 0.7) +
             geom_text(aes(label = round(Value, 2)), 
-                     vjust = ifelse(plot_data$Value >= 0, -0.5, 1.5),
+                     vjust = ifelse(plotData$Value >= 0, -0.5, 1.5),
                      color = "#2c3e50", size = 3.5) +
             labs(
                 title = paste(if(input$plot2Order == "top") "Highest" else "Lowest",
@@ -193,7 +216,18 @@ server <- function(input, output, session) {
             )
     })
     
+    
+    
+    
+    
+    
+    
+    
+    
+    ############################################################################
     # Render Rolling Average plot
+    ############################################################################
+    
     output$plot3 <- renderPlot({
         req(input$plot3Indicator)
         dat <- selectedData()
@@ -208,9 +242,9 @@ server <- function(input, output, session) {
         }
         
         # Calculate rolling mean
-        window_size <- input$plot3Window
+        windowSize <- input$plot3Window
         setorder(sub, Year)
-        sub[, RollingMean := frollmean(Value, n = window_size, align = "right")]
+        sub[, RollingMean := frollmean(Value, n = windowSize, align = "right")]
         
         # Get colors
         colors <- getColors(input$plot3ColorPalette, 2)
@@ -226,7 +260,7 @@ server <- function(input, output, session) {
                 values = c("Actual" = colors[1], "Rolling Average" = colors[2])
             ) +
             labs(
-                title = paste(window_size, "Year Rolling Average for", input$plot3Indicator),
+                title = paste(windowSize, "Year Rolling Average for", input$plot3Indicator),
                 x = "Year",
                 y = "Value"
             ) +
